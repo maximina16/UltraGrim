@@ -39,6 +39,8 @@ import ac.grim.grimac.platform.bukkit.sender.BukkitSenderFactory;
 import ac.grim.grimac.platform.bukkit.utils.placeholder.PlaceholderAPIExpansion;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import ac.grim.grimac.utils.lazy.LazyHolder;
+import ac.grim.grimac.utils.common.BuildProperties;
+import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
 import io.github.retrooper.packetevents.factory.spigot.SpigotPacketEventsBuilder;
 import lombok.Getter;
@@ -57,7 +59,7 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     public static GrimACBukkitLoaderPlugin LOADER;
 
     private final LazyHolder<PlatformScheduler> scheduler = LazyHolder.simple(this::createScheduler);
-    private final LazyHolder<PacketEventsAPI<?>> packetEvents = LazyHolder.simple(() -> SpigotPacketEventsBuilder.build(this));
+    private final LazyHolder<PacketEventsAPI<?>> packetEvents = LazyHolder.simple(this::resolvePacketEvents);
     private final LazyHolder<BukkitSenderFactory> senderFactory = LazyHolder.simple(BukkitSenderFactory::new);
     private final LazyHolder<ItemResetHandler> itemResetHandler = LazyHolder.simple(BukkitItemResetHandler::new);
     private final LazyHolder<CommandService> commandService = LazyHolder.simple(this::createCommandService);
@@ -110,6 +112,18 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     @Override
     public PlatformScheduler getScheduler() {
         return scheduler.get();
+    }
+
+    private PacketEventsAPI<?> resolvePacketEvents() {
+        if (BuildProperties.shadesPacketEvents()) {
+            return SpigotPacketEventsBuilder.build(this);
+        }
+
+        PacketEventsAPI<?> api = PacketEvents.getAPI();
+        if (api == null) {
+            throw new IllegalStateException("UltraGrim requires the PacketEvents plugin to be installed and enabled.");
+        }
+        return api;
     }
 
     @Override

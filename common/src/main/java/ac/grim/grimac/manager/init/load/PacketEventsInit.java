@@ -1,5 +1,6 @@
 package ac.grim.grimac.manager.init.load;
 
+import ac.grim.grimac.utils.common.BuildProperties;
 import ac.grim.grimac.utils.anticheat.LogUtil;
 import com.github.retrooper.packetevents.PacketEvents;
 import com.github.retrooper.packetevents.PacketEventsAPI;
@@ -26,17 +27,19 @@ public class PacketEventsInit implements LoadableInitable {
 
     @Override
     public void load() {
+        if (!BuildProperties.shadesPacketEvents()) {
+            LogUtil.info("Using external PacketEvents plugin...");
+            if (!checkPacketEventsVersion()) {
+                logIncompatibleVersion();
+            }
+            return;
+        }
+
         LogUtil.info("Loading PacketEvents...");
         PacketEvents.setAPI(packetEventsAPI);
 
         if (!checkPacketEventsVersion()) {
-            LogUtil.error("\n" +
-                    "******************************************************\n" +
-                    "GrimAC requires PacketEvents >= " + MINIMUM_REQUIRED_PE_VERSION +
-                    (MINIMUM_REQUIRED_PE_VERSION.snapshot() ? "-SNAPSHOT" : "") + "\n" +
-                    "Current version: " + PacketEvents.getAPI().getVersion() + "\n" +
-                    "Please update PacketEvents to a compatible version.\n" +
-                    "*****************************************************");
+            logIncompatibleVersion();
         }
 
         PacketEvents.getAPI().getSettings()
@@ -58,6 +61,16 @@ public class PacketEventsInit implements LoadableInitable {
             ParticleTypes.DUST.getName();
             WrappedBlockState.getByString(PacketEvents.getAPI().getServerManager().getVersion().toClientVersion(), "", false);
         }).start();
+    }
+
+    private void logIncompatibleVersion() {
+        LogUtil.error("\n" +
+                "******************************************************\n" +
+                "GrimAC requires PacketEvents >= " + MINIMUM_REQUIRED_PE_VERSION +
+                (MINIMUM_REQUIRED_PE_VERSION.snapshot() ? "-SNAPSHOT" : "") + "\n" +
+                "Current version: " + PacketEvents.getAPI().getVersion() + "\n" +
+                "Please update PacketEvents to a compatible version.\n" +
+                "*****************************************************");
     }
 
     private boolean checkPacketEventsVersion() {

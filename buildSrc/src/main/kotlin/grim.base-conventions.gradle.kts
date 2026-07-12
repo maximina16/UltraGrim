@@ -42,8 +42,10 @@ tasks {
     }
 
     build {
-        // Ensure spotlessApply runs before build
-        dependsOn(tasks.named("spotlessApply"))
+        val skipSpotless = project.findProperty("skipSpotless")?.toString()?.toBooleanStrictOrNull() == true
+        if (!skipSpotless) {
+            dependsOn(tasks.named("spotlessApply"))
+        }
     }
 
     // Process resources (e.g., for plugin metadata files)

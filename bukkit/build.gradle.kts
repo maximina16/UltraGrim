@@ -54,11 +54,8 @@ dependencies {
     compileOnly(libs.placeholderapi)
     compileOnly(libs.luckperms)
 
-    if (BuildConfig.shadePE) {
-        implementation(libs.packetevents.spigot)
-    } else {
-        compileOnly(libs.packetevents.spigot)
-    }
+    compileOnly(libs.packetevents.spigot)
+
     implementation(libs.cloud.paper)
     implementation(libs.adventure.platform.bukkit)
     implementation(libs.grim.bukkit.internal)
@@ -68,16 +65,14 @@ dependencies {
 }
 
 bukkit {
-    name = "GrimAC"
-    author = "GrimAC"
+    name = "UltraGrim"
+    author = "UltraGrim"
     main = "ac.grim.grimac.platform.bukkit.GrimACBukkitLoaderPlugin"
     website = "https://grim.ac/"
     apiVersion = "1.13"
     foliaSupported = true
 
-    if (!BuildConfig.shadePE) {
-        depend = listOf("packetevents")
-    }
+    depend = listOf("packetevents")
 
     softDepend = listOf(
         "ProtocolLib",
@@ -209,7 +204,11 @@ tasks {
     }
 
     shadowJar {
+        archiveFileName.set("UltraGrim-${rootProject.version}.jar")
         exclude("META-INF/services/javax.annotation.processing.Processor")
+        dependencies {
+            exclude(dependency("com.github.retrooper:.*"))
+        }
 
         manifest {
             attributes["paperweight-mappings-namespace"] = "mojang"
