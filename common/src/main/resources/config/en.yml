@@ -6,7 +6,7 @@
 
 alerts:
     # In addition to broadcasting alerts to players, should they also be sent to the console?
-    print-to-console: true
+    print-to-console: false
     # This controls whether/how alerts are shared between servers connected to your proxy.
     # You must have 'bungee-plugin-message-channel' enabled in your Velocity's configuration if Velocity is in use.
     proxy:
@@ -25,12 +25,9 @@ client-brand:
     ignored-clients:
         - "^vanilla$"
         - "^fabric$"
-        - "^quilt$"
-        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4},(?:fabric|forge)$"
+        - "^lunarclient:v\\d+\\.\\d+\\.\\d+-\\d{4}$"
         - "^Feather Fabric$"
         - "^labymod$"
-    # Grim will blacklist specific Forge versions which include built-in Reach hacks (Forge 1.18.2 to 1.19.3).
-    # Setting this option to false will allow said clients to connect to the server. Disable this at your own risk.
     disconnect-blacklisted-forge-versions: true
 
 spectators:
@@ -41,7 +38,7 @@ spectators:
         - ""
 
 # How long should players have until we kick them for timing out? Default = 60 seconds
-max-transaction-time: 60
+max-transaction-time: 180
 
 # Enable this to stop Grim cancelling pongs received from players.
 # This may improve compatibility with other anticheats. It may cause issues with packet limiters.
@@ -71,40 +68,40 @@ Simulation:
     # Measured in blocks from the possible movement
     # We account for Optifine by switching trig tables but dropping this to 0.001 will reduce FastMath
     # flagging the anticheat if this compensation doesn't work...
-    threshold: 0.001
+    threshold: 0.16
     # How large of a violation in a tick before the player gets immediately setback?
     # -1 to disable
-    immediate-setback-threshold: 0.1
+    immediate-setback-threshold: 0.85
     # How large of an advantage over all ticks before we start to setback?
     # -1 to disable
-    max-advantage: 1
+    max-advantage: 9
     # After 50 seconds with default config, the player will go from 4 blocks -> 1 block of advantage
     # This is to stop the player from gathering too many violations and never being able to clear them all
     # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
-    max-ceiling: 4
+    max-ceiling: 22
     # Violation level threshold for setback
     # 1 for old behavior
     setback-violation-threshold: 1
 
 # Checks to see if a player entered a block during a movement
 Phase:
-    setbackvl: 1 # Glitching into blocks can allow wall climbing, plus this check is relatively stable
+    setbackvl: 5 # Glitching into blocks can allow wall climbing, plus this check is relatively stable
     decay: 0.005
 
 AirLiquidPlace:
     cancelvl: 0
 
 FabricatedPlace:
-    cancelvl: 5
+    cancelvl: 1
 
 FarPlace:
-    cancelvl: 5
+    cancelvl: 1
 
 PositionPlace:
-    cancelvl: 5
+    cancelvl: 1
 
 RotationPlace:
-    cancelvl: 5
+    cancelvl: 1
 
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button
@@ -113,7 +110,7 @@ NoSlow:
     # How much of an offset is "cheating"
     # By default this is lower than other offs
     # Flags by 0.03-0.2 consistently with NoSlow on
-    threshold: 0.001
+    threshold: 0.0025
     # Setback fast on the first item to remove any advantage NoSlow gives
     setbackvl: 5
     # Decay's when the player uses an item AND is slowed by it
@@ -124,25 +121,25 @@ Knockback:
     setback-decay-multiplier: 0.999
     # How large of an offset from the player's velocity should we create a violation for?
     # Measured in blocks from the possible velocity
-    threshold: 0.001
+    threshold: 0.006
     # How large of a violation in a tick before the player gets immediately setback?
     # -1 to disable
-    immediate-setback-threshold: 0.1
+    immediate-setback-threshold: 0.4
     # How large of an advantage over all ticks before we start to setback?
     # -1 to disable
-    max-advantage: 1
+    max-advantage: 4
     # This is to stop the player from gathering too many violations and never being able to clear them all
-    max-ceiling: 4
+    max-ceiling: 12
 
 Explosion:
     threshold: 0.001
     setbackvl: 3
 
 TimerA:
-    setbackvl: 10
+    setbackvl: 8
     # Milliseconds that the player can accumulate for later use when they fall behind
-    # Could potentially allow 1.8 fast use/fast heal/fast bow bypasses if set too high, 120 ms seems like a good balance
-    drift: 120
+    # ViaVersion + custom items: a bit more drift than old 80, still below Ultra default 120
+    drift: 100
 
 # This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
 TimerLimit:
@@ -153,7 +150,7 @@ TimerLimit:
 
 NegativeTimer:
     # Number of milliseconds lost while moving before we should start flagging
-    drift: 1200
+    drift: 1100
 
 # Same check method as TimerA, but for vehicles
 VehicleTimer:
@@ -206,7 +203,7 @@ reset-item-usage-on-item-use: true
 
 # Grim sometimes cancels illegal packets such as with timer, after X packets in a second cancelled, when should
 # we simply kick the player? This is required as some packet limiters don't count packets cancelled by grim.
-packet-spam-threshold: 100
+packet-spam-threshold: 1500
 # Enable this to print a stacktrace when a player is kicked due to packet-spam-threshold
 debug-packet-cancel: false
 

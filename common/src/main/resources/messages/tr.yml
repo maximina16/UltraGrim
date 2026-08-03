@@ -1,135 +1,124 @@
-# \u00BB eşittir » (çift >>), ANSI ve UTF-8 bunu farklı yorumlar. bu nedenle ? bile görebilirsiniz
-prefix: "&bGrim &8\u00BB"
+# \u00BB is » (double >>), ANSI and UTF-8 interpret this differently... you may even see ? due to this
+prefix: "&#9D8CFF&lCraftPixel &8▸ "
 
-alerts-enabled: "%prefix% &fUyarılar aktif edildi."
-alerts-disabled: "%prefix% &fUyarılar deaktif edildi."
-verbose-enabled: "%prefix% &fVerbose enabled"
-verbose-disabled: "%prefix% &fVerbose disabled"
-brands-enabled: "%prefix% &fBrands enabled"
-brands-disabled: "%prefix% &fBrands disabled"
-client-brand-format: "%prefix% &f%player% adlı oyuncu %brand% kullanarak giriş yaptı."
-console-specify-target: "%prefix% &cKonsol olarak bir hedef belirtmelisiniz!"
-reloading: "%prefix% &7Reloading config..."
-reloaded: "%prefix% &fConfig has been reloaded."
-reload-failed: "%prefix% &cFailed to reload config."
-player-not-found: "%prefix% &cOyuncu bulunamadı veya aktif değil!"
-player-not-this-server: "%prefix% &cBu oyuncu sunucuda değil!"
-sender-not-found: "%prefix% &cMuafsanız bu komutu kullanamazsınız!"
-spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\">\n%prefix% &fBir önceki konuma dönmek için buraya tıklayın.\n</hover></click>"
-cannot-spectate-return: "%prefix% &cBunu yalnızca bir oyuncuyu izledikten sonra yapabilirsiniz."
-cannot-run-on-self: "%prefix% &cBu komutu kendi üzerinizde kullanamazsınız!"
-upload-log: "%prefix% &fDebug şu adrese yüklendi: %url%"
-upload-log-start: "%prefix% &fLog yükleniyor... lütfen bekleyin."
-upload-log-not-found: "%prefix% &cLog bulunamadı."
-upload-log-upload-failure: "%prefix% &cLog yüklenirken bir problem oluştu, lütfen konsolu kontrol edin."
+alerts-enabled: "%prefix% &#00AA00Uyarılar açıldı."
+alerts-disabled: "%prefix% &#FF5555Uyarılar kapatıldı."
+verbose-enabled: "%prefix% &#00AA00Verbose modu açıldı."
+verbose-disabled: "%prefix% &#FF5555Verbose modu kapatıldı."
+brands-enabled: "%prefix% &#00AA00Marka kontrolü açıldı."
+brands-disabled: "%prefix% &#FF5555Marka kontrolü kapatıldı."
+client-brand-format: "%prefix% &#FFD700%player% &#E0E0E0sunucuya &#9D8CFF%brand% &#E0E0E0ile bağlandı."
+console-specify-target: "%prefix% &#FF5555Konsol olarak bir hedef belirtmelisin!"
+reloading: "%prefix% &#E0E0E0Yapılandırma yenileniyor..."
+reloaded: "%prefix% &#00AA00Yapılandırma başarıyla yenilendi."
+reload-failed: "%prefix% &#FF5555Yenileme başarısız."
+player-not-found: "%prefix% &#FF5555Oyuncu bulunamadı veya muaf!"
+player-not-this-server: "%prefix% &#FF5555Oyuncu bu sunucuda değil!"
+sender-not-found: "%prefix% &cYou cannot be exempt to use this command!"
+spectate-return: "<click:run_command:/grim stopspectating><hover:show_text:\"/grim stopspectating\"> %prefix% &#FFD700Önceki konuma dönmek için buraya tıkla </hover></click>"
+cannot-spectate-return: "%prefix% &#FF5555Bunu sadece bir oyuncuyu izledikten sonra yapabilirsin."
+cannot-run-on-self: "%prefix% &#FF5555Bu komutu kendinde kullanamazsın!"
+upload-log: "%prefix% &#E0E0E0Debug yüklendi: &#FFD700%url%"
+upload-log-start: "%prefix% &#E0E0E0Log yükleniyor... Lütfen bekle."
+upload-log-not-found: "%prefix% &#FF5555Log bulunamadı."
+upload-log-upload-failure: "%prefix% &#FF5555Log yüklenirken hata oluştu, konsolu kontrol et."
 disconnect:
     timeout: "<lang:disconnect.timeout>"
     closed: "<lang:disconnect.closed>"
     error: "<red>An error occurred whilst processing packets. Please contact the administrators."
     blacklisted-forge: "<red>Your forge version is blacklisted due to inbuilt reach hacks.<newline><gold>Versions affected: 1.18.2-1.19.3<newline><newline><red>Please see https://github.com/MinecraftForge/MinecraftForge/issues/9309."
-run-as-player: "%prefix% &cBu komut yalnızca oyuncular tarafından kullanılabilir!"
-run-as-player-or-console: "%prefix% &cBu komut yalnızca oyuncular veya konsol tarafından kullanılabilir!"
+run-as-player: "%prefix% &cThis command can only be used by players!"
+run-as-player-or-console: "%prefix% &cThis command can only be used by players or the console!"
 webhook-not-enabled: "Discord webhooks are not enabled!"
 webhook-test-message: "test message"
 webhook-test-succeeded: "Discord webhook test succeeded!"
 webhook-test-failed: "Discord webhook test failed!"
 
-# Geçerli placeholderlar:
+# Valid placeholders:
 # %prefix%
 # %player%
 # %check_name%
 # %description%
 # %experimental%
-# %vl% - ihlal uyarıları
-# %verbose% - detaylı olarak verilen tüm uyarılar, checkler tüm bilgileri vermez
-alerts-format: "%prefix% &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet <hover:show_text:\"&b%check_name%%experimental%\n&8Açıklama: &f%description%\">&b%check_name%%experimental%</hover> &ftespit edildi: &7%verbose%"
-alerts-format-proxy: "%prefix% &f[&cproxy&f] &b%player% &fadlı oyuncuda &f(x&c%vl%&f) &fadet <hover:show_text:\"&b%check_name%%experimental%\n&8Açıklama: &f%description%\">&b%check_name%%experimental%</hover> &ftespit edildi: &7%verbose%"
+# %vl% - violations
+# %verbose% - extra information from the check such as offsets, not all checks will add information
+alerts-format: "%prefix% &#FFD700%player% &#FF5555tespit edildi: &#9D8CFF%check_name%%experimental% &#E0E0E0(x&#FF5555%vl%&#E0E0E0) &#8D99AE%verbose%"
+alerts-format-proxy: "%prefix% &#FF5555[Proxy] &#FFD700%player% &#FF5555tespit edildi: &#9D8CFF%check_name%%experimental% &#E0E0E0(x&#FF5555%vl%&#E0E0E0) &#8D99AE%verbose%"
 experimental-symbol: "*"
 
 profile:
-    - "&7======================"
-    - "%prefix% &f%player% &badlı oyuncunun profili:"
-    - "&bGecikme: &f%ping%"
-    - "&bVersiyon: &f%version%"
-    - "&bKullanılan Client: &f%brand%"
-    - "&bDikey Hassasiyet: &f%h_sensitivity%%"
-    - "&bYatay Hassasiyet: &f%v_sensitivity%%"
-    - "&bFastMath Ayarı: &f%fast_math%"
-    - "&7======================"
+    - "&#9D8CFF&m                                     "
+    - "%prefix% &#FFD700%player% &#E0E0E0Profili"
+    - " &#9D8CFFPing: &#E0E0E0%ping%"
+    - " &#9D8CFFSürüm: &#E0E0E0%version%"
+    - " &#9D8CFFİstemci: &#E0E0E0%brand%"
+    - " &#9D8CFFYatay Hassasiyet: &#E0E0E0%h_sensitivity%%"
+    - " &#9D8CFFDikey Hassasiyet: &#E0E0E0%v_sensitivity%%"
+    - " &#9D8CFFFastMath: &#E0E0E0%fast_math%"
+    - "&#9D8CFF&m                                     "
 help:
-    - "&7======================"
-    - "/grim alerts &f- &7Uyarıları aktif/deaktif eder"
-    - "/grim brands &f- &7Toggle brands"
-    - "/grim profile (oyuncu) &f- &7Oyuncu profilini gösterir"
-    - "/grim help &f- &7Bu yardım mesajını gösterir"
-    - "/grim debug <player> &f- &7Geliştirici Debug'ını verir"
-    - "/grim perf &f- &7Geliştirici Performansını verir"
-    - "/grim reload &f- &7Configi yeniden yükler"
-    - "/grim spectate (oyuncu) &f- &7Bir oyuncuyu izlemenizi sağlar"
-    - "/grim verbose &f- &7Arabelleğe almadan tüm uyarıları görmenizi sağlar"
-    - "/grim log (0-255) &f- &7Uyarılar için bir debug logu çıktısı verir"
-    - "/grim history <player> &f- &7Oturum listesi (en yenisi başta)"
-    - "/grim history <player> page <N> &f- &7Oturum listesinin N. sayfasına atla"
-    - "/grim history <player> session <N|latest> [-d] [-v] &f- &7Oturum detayı (en yeni ihlaller başta)"
-    - "/grim history <player> session <N|latest> page <N> [-d] [-v] &f- &7Oturum detayı, ihlal sayfası N"
-    - "&7======================"
+    - "&#9D8CFF&m                                     "
+    - " &#FFD700/grim alerts &#8- &#E0E0E0Uyarıları aç/kapat"
+    - " &#FFD700/grim brands &#8- &#E0E0E0Marka kontrolünü aç/kapat"
+    - " &#FFD700/grim profile <oyuncu> &#8- &#E0E0E0Oyuncu bilgisini gör"
+    - " &#FFD700/grim help &#8- &#E0E0E0Bu yardım menüsünü gör"
+    - " &#FFD700/grim debug <oyuncu> &#8- &#E0E0E0Geliştirici tahmin çıktısı"
+    - " &#FFD700/grim perf &#8- &#E0E0E0Geliştirici ms/tahmin"
+    - " &#FFD700/grim reload &#8- &#E0E0E0Ayarları yenile"
+    - " &#FFD700/grim spectate <oyuncu> &#8- &#E0E0E0Oyuncuyu izle"
+    - " &#FFD700/grim verbose &#8- &#E0E0E0Tüm flagları gör"
+    - " &#FFD700/grim log [0-255] &#8- &#E0E0E0Debug log yükle"
+    - "&#9D8CFF&m                                     "
+grim-history-load-failure: "%prefix% &cHistory subsystem failed to load! Check server console for errors."
+grim-history-disabled: "%prefix% &cHistory subsystem is disabled!"
+grim-history-failed: "%prefix% &cFailed to load history: &7%error%"
+grim-history-unknown-player: "%prefix% &cUnknown player: &f%player%"
+grim-history-no-sessions: "%prefix% &7No session history for &f%player%&7."
+grim-history-session-not-found: "%prefix% &cSession &f%ordinal%&c not found for &f%player%&c."
 
-# === /grim history ===
-# Oturum tabanlı geçmiş arayüzü. Aşağıdaki tüm satırlar yapılandırılabilir
-# MiniMessage şablonlarıdır. Varsayılan hover'lar inline
-# <hover:show_text:'...'> taglerinde ve aşağıdaki hover parçası anahtarlarında
-# bulunur; renderer fallback'ini kullanmak için inline hover'ı kaldır.
-
-grim-history-load-failure: "%prefix% &cGeçmiş altsistemi yüklenemedi! Hatalar için sunucu konsolunu kontrol edin."
-grim-history-disabled: "%prefix% &cGeçmiş alt sistemi devre dışı!"
-grim-history-failed: "%prefix% &cGeçmiş yüklenemedi: &7%error%"
-grim-history-unknown-player: "%prefix% &cBilinmeyen oyuncu: &f%player%"
-grim-history-no-sessions: "%prefix% &7&f%player% &7için oturum geçmişi yok."
-grim-history-session-not-found: "%prefix% &c&f%player% &ciçin &f%ordinal% &cnumaralı oturum bulunamadı."
-
-# Oturum listesi — geçerli placeholder'lar: %prefix% %player% %page% %max_pages%
-grim-history-header: "%prefix% &b&f%player% &biçin oturum geçmişi &8[&f%page%&7/&f%max_pages%&8]"
-# Tek oturum özeti satırı — geçerli placeholder'lar:
+# Session list — valid placeholders: %prefix% %player% %page% %max_pages%
+grim-history-header: "%prefix% &bShowing session history for &f%player% &8[&f%page%&7/&f%max_pages%&8]"
+# Single session summary line — valid placeholders:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
 #   %violations% %unique_checks% %crashed_marker% %session_uuid% %detail_command%
-# Bağlantısı düzgün kapanmadan kopan oturumlar (sunucu çökmesi, kill -9,
-# UserDisconnectEvent tetiklemeyen channel RST gibi) için %crashed_marker%
-# grim-history-crashed-marker olarak genişler. Devam eden veya düzgün
-# kapatılmış oturumlarda boş string olur.
-grim-history-session: "<hover:show_text:'&bOturum &7%session_uuid%<newline>&7Tıkla veya &e%detail_command% &7komutunu çalıştır<newline>&7oturum detaylarını görmek için.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bOturum &f%ordinal%&b, süre &f%duration%&b, &c%violations%&b ihlal &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% önce&8)</hover>"
+# %crashed_marker% expands to grim-history-crashed-marker for sessions
+# whose connection went away without a graceful close (server crash,
+# kill -9, channel RST that didn't fire UserDisconnectEvent). Empty
+# string for ongoing or gracefully-closed sessions.
+grim-history-session: "<hover:show_text:'&bSession &7%session_uuid%<newline>&7Click or run &e%detail_command%<newline>&7to view session details.'>%prefix% &8[&b%grim_version%&8] &8[&b%server_name%&8] &8[&b%client_version%&8] &bSession &f%ordinal%&b duration &f%duration%&b with &c%violations%&b violations &8[&c%unique_checks%&8]%crashed_marker% &8(&7%timeago% ago&8)</hover>"
 
-# closed_at == last_activity olan oturumlar (yani disconnect yolu yerine bir
-# sonraki başlatmanın crash-sweep'i tarafından damgalananlar) için
-# %crashed_marker%'a yerleştirilen satır içi işaret. Var olduğunda doğal
-# okunsun, yokken temiz kaybolsun diye başında bir boşluk içerir.
-grim-history-crashed-marker: " &8(&cçöktü&8)"
+# Inline marker substituted into %crashed_marker% on session lines whose
+# closed_at == last_activity (i.e. stamped by the next-boot crash sweep
+# rather than the disconnect path). Includes a leading space so the
+# marker reads naturally when present and disappears when empty.
+grim-history-crashed-marker: " &8(&ccrashed&8)"
 
-# Oturum detayı — geçerli placeholder'lar:
+# Session detail — valid placeholders:
 #   %prefix% %player% %ordinal% %grim_version% %server_name%
 #   %client_version% %client_brand% %duration% %timeago%
 #   %violations% %unique_checks% %bucket_size%
-grim-history-detail-header: "%prefix% &b&f%player% &boyuncusunun &f%ordinal% &bnumaralı oturum detayı:"
-grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Sunucu: &f%server_name%&b, Süre: &f%duration%&b, Tarih: &7%timeago% önce"
-grim-history-detail-meta2: "%prefix% &bİstemci: &f%client_version%&b, Marka: &f%client_brand%"
-grim-history-detail-violations-header: "%prefix% &bİhlaller: &8(toplam %violations%, benzersiz %unique_checks%)"
-grim-history-detail-empty: "%prefix% &7- (yok)"
-# Gruplanmış satır (varsayılan) — geçerli placeholder'lar: %prefix% %offset% %checks_list%
+grim-history-detail-header: "%prefix% &bShowing &f%player%&b's session &f%ordinal%&b details:"
+grim-history-detail-meta1: "%prefix% &bGrim: &f%grim_version%&b, Server: &f%server_name%&b, Duration: &f%duration%&b, Date: &7%timeago% ago"
+grim-history-detail-meta2: "%prefix% &bClient: &f%client_version%&b, Brand: &f%client_brand%"
+grim-history-detail-violations-header: "%prefix% &bViolations: &8(%violations% total, %unique_checks% unique)"
+grim-history-detail-empty: "%prefix% &7- (none)"
+# A grouped row (default) — valid placeholders: %prefix% %offset% %checks_list%
 #   %bucket_start% %bucket_end% %bucket_hover_entries%
-#   %checks_list%, grim-history-check-count girdileri ", " ile birleştirilerek oluşur
-grim-history-detail-group: "<hover:show_text:'&b%bucket_start%–%bucket_end% aralığındaki ihlaller:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
-grim-history-detail-group-hover: "&b%bucket_start%–%bucket_end% aralığındaki ihlaller:%bucket_hover_entries%"
+#   %checks_list% is built by joining grim-history-check-count entries with ", "
+grim-history-detail-group: "<hover:show_text:'&bViolations in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%'>%prefix% &7- %checks_list% &8(&b%offset%&8)</hover>"
+grim-history-detail-group-hover: "&bViolations in &f%bucket_start%–%bucket_end%&b:%bucket_hover_entries%"
 grim-history-detail-group-hover-entry: "<newline>&8  %offset% &b%check%%description%%verbose%"
 grim-history-hover-description: " — &f%description%"
 grim-history-detail-group-hover-verbose: " — &7%verbose%"
-# Tek ham ihlal satırı (--detailed) — geçerli placeholder'lar:
+# A single raw violation row (--detailed) — valid placeholders:
 #   %prefix% %offset% %check% %description% %vl% %verbose%
 grim-history-detail-entry: "%prefix% &7- &f%check% &8(&b%offset%&8)&7 %verbose%"
 grim-history-detail-entry-hover: "&b%check%%description%<newline>&8@ %offset% — vl %vl%%verbose%"
 grim-history-detail-entry-hover-verbose: "<newline>&7%verbose%"
-# %checks_list% içinde her kontrol için iç biçim — geçerli placeholder'lar: %check_name% %count%
+# Inner format for each check in a group's %checks_list% — valid placeholders: %check_name% %count%
 grim-history-check-count: "&f%check_name%&7 x&c%count%"
 
-# Şema işaretçileri — bkz. config.yml'deki başlık yorumu.
+# Schema markers — see header comment in config.yml.
 config-flavor: V2
 config-version: 2
