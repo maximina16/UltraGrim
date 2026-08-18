@@ -548,9 +548,10 @@ public class BlockPlace {
         CollisionBox box = CollisionData.getData(state.getType()).getMovementCollisionBox(player, player.getClientVersion(), state, position.getX(), position.getY(), position.getZ());
 
 
-        // Note scaffolding is a special case because it can never intersect with the player's bounding box,
-        // and we fetch it with lastY instead of y which is wrong, so it is easier to just ignore scaffolding here
-        if (state.getType() != StateTypes.SCAFFOLDING) {
+        // Scaffolding never intersects the player. Signs have no movement collision in vanilla
+        // (you walk through them) but Grim still uses a 1-high box for standing signs, so a
+        // legit place at the player's feet would abort world tracking and desync the editor.
+        if (state.getType() != StateTypes.SCAFFOLDING && !isSignLike(state.getType())) {
             // A player cannot place a block in themselves.
             // 0.03 can desync quite easily
             // 0.002 desync must be done with teleports, it is very difficult to do with slightly moving.
@@ -678,6 +679,10 @@ public class BlockPlace {
             return;
         }
         set(material);
+    }
+
+    private static boolean isSignLike(StateType type) {
+        return type.getName().contains("sign");
     }
 
     public void setAbove() {

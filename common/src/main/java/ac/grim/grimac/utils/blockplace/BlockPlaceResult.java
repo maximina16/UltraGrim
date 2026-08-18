@@ -577,7 +577,7 @@ public enum BlockPlaceResult {
     }, ItemTypes.values().stream().filter(mat ->
                     mat.getName().getKey().contains("torch") // Find all torches
                             || (mat.getName().getKey().contains("head") || mat.getName().getKey().contains("skull")) && !mat.getName().getKey().contains("piston") // Skulls
-                            || mat.getName().getKey().contains("sign")) // And signs
+                            || (mat.getName().getKey().contains("sign") && !mat.getName().getKey().contains("hanging"))) // Standing/wall signs; hanging uses default place
             .toArray(ItemType[]::new)),
 
     MULTI_FACE_BLOCK((player, place) -> {
