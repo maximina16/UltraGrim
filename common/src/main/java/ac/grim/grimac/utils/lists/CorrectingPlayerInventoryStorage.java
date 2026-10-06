@@ -5,6 +5,7 @@ import ac.grim.grimac.player.GrimPlayer;
 import ac.grim.grimac.utils.inventory.Inventory;
 import ac.grim.grimac.utils.inventory.InventoryStorage;
 import com.github.retrooper.packetevents.protocol.item.ItemStack;
+import com.github.retrooper.packetevents.protocol.player.GameMode;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -100,6 +101,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
      * @param slot the slot to check
      */
     private void checkThatBukkitIsSynced(int slot) {
+        if (player.gamemode == GameMode.CREATIVE) return;
         // The player isn't fully logged in yet, don't bother checking
         if (player.platformPlayer == null) return;
         // We aren't tracking the player's inventory, so don't bother
@@ -122,6 +124,7 @@ public class CorrectingPlayerInventoryStorage extends InventoryStorage {
 
     public void tickWithBukkit() {
         if (player.platformPlayer == null) return;
+        if (player.gamemode == GameMode.CREATIVE) return;
 
         // Loop all slot changes the client has predicted and check that the server has accepted them
         int tickID = GrimAPI.INSTANCE.getTickManager().currentTick;
