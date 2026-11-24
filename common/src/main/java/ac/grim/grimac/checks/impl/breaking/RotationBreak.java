@@ -23,7 +23,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", description = "Tried to break a block without looking at it")
+@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", description = "Tried to break a block without looking at it", experimental = true)
 public class RotationBreak extends Check implements BlockBreakCheck {
     private static final Verbose V = Verbose.of("[pre-flying|post-flying], action={digging}");
 

@@ -5,9 +5,9 @@ import ac.grim.grimac.checks.Check;
 import ac.grim.grimac.checks.CheckData;
 import ac.grim.grimac.checks.type.PostPredictionCheck;
 import ac.grim.grimac.player.GrimPlayer;
-import ac.grim.grimac.utils.anticheat.update.PredictionComplete;
 import com.github.retrooper.packetevents.event.PacketReceiveEvent;
 import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.protocol.packettype.PacketTypeCommon;
 import com.github.retrooper.packetevents.protocol.player.InteractionHand;
 import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientAnimation;
 
@@ -22,6 +22,7 @@ public class Autoclicker extends Check implements PostPredictionCheck {
     private int exemptDigTicks = 0;
     private int swingsInCurrentWindow = 0;
     private int windowTicks = 0;
+    private long windowStartMs = 0L;
     private boolean swungThisTick = false;
 
     private double cpsBuffer = 0;
@@ -33,15 +34,15 @@ public class Autoclicker extends Check implements PostPredictionCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (event.getPacketType() == PacketType.Play.Client.PLAYER_DIGGING
-                || event.getPacketType() == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
-                || event.getPacketType() == PacketType.Play.Client.USE_ITEM) {
-            // Exempt mining (MaxiMine/MaxiFarm), block placing, and fishing rod / item interactions
+        PacketTypeCommon type = event.getPacketType();
+        if (type == PacketType.Play.Client.PLAYER_DIGGING
+                || type == PacketType.Play.Client.PLAYER_BLOCK_PLACEMENT
+                || type == PacketType.Play.Client.USE_ITEM) {
             exemptDigTicks = 8;
             return;
         }
 
-        if (event.getPacketType() == PacketType.Play.Client.ANIMATION) {
+        if (type == PacketType.Play.Client.ANIMATION) {
             WrapperPlayClientAnimation anim = new WrapperPlayClientAnimation(event);
             if (anim.getHand() == InteractionHand.MAIN_HAND
                     && exemptDigTicks == 0
@@ -50,21 +51,33 @@ public class Autoclicker extends Check implements PostPredictionCheck {
                     && !player.packetOrderProcessor.isUsing()
                     && !player.packetOrderProcessor.isDropping()) {
                 swungThisTick = true;
+                if (windowStartMs == 0L) {
+                    windowStartMs = System.currentTimeMillis();
+                }
                 swingsInCurrentWindow++;
             }
+            return;
+        }
+
+        if (!player.cameraEntity.isSelf()) {
+            return;
+        }
+
+        if (isTickPacket(type) || type == PacketType.Play.Client.CLIENT_TICK_END) {
+            onClientTick();
         }
     }
 
-    @Override
-    public void onPredictionComplete(PredictionComplete predictionComplete) {
+    private void onClientTick() {
         if (exemptDigTicks > 0) {
             exemptDigTicks--;
         }
 
-        if (!player.isTickingReliablyFor(8)) {
+        if (!player.isTickingReliablyFor(8) || player.packetStateData.lastPacketWasTeleport) {
             swungThisTick = false;
             swingsInCurrentWindow = 0;
             windowTicks = 0;
+            windowStartMs = 0L;
             return;
         }
 
@@ -89,17 +102,21 @@ public class Autoclicker extends Check implements PostPredictionCheck {
         }
 
         if (windowTicks >= 20) {
-            // 1. Sustained impossible combat CPS (> 26 swings per 20 client ticks)
-            if (swingsInCurrentWindow > 26) {
+            long now = System.currentTimeMillis();
+            long elapsedMs = windowStartMs > 0L ? (now - windowStartMs) : 0L;
+            // Only evaluate when 20 client ticks genuinely span ~1 second (850..1450ms);
+            // rejects TCP lag bursts (<850ms) and stationary/pausing accumulation (>1450ms).
+            if (elapsedMs >= 850L && elapsedMs <= 1450L && swingsInCurrentWindow > 28) {
                 if (++cpsBuffer >= 3.0) {
                     cpsBuffer = 3.0;
                     flag(V.write(verbose()).str("cps=" + swingsInCurrentWindow));
                 }
-            } else {
+            } else if (elapsedMs >= 850L) {
                 cpsBuffer = Math.max(0, cpsBuffer - 0.5);
             }
             swingsInCurrentWindow = 0;
             windowTicks = 0;
+            windowStartMs = now;
         }
     }
 
@@ -118,7 +135,6 @@ public class Autoclicker extends Check implements PostPredictionCheck {
         }
 
         double mean = sum / 40.0;
-        // Only check fast clicking (>= 8 CPS -> mean <= 2.5 ticks); skip 1.0 tick constant saturation (handled by CPS limit)
         if (mean > 2.5 || mean <= 1.02) {
             macroBuffer = Math.max(0, macroBuffer - 0.25);
             return;
@@ -132,9 +148,8 @@ public class Autoclicker extends Check implements PostPredictionCheck {
         double stdDev = Math.sqrt(varSum / 40.0);
         double modeRatio = maxCount / 40.0;
 
-        // Hardware/software fixed-delay autoclickers produce near-zero tick variance (>= 95% identical tick spacing)
         if (stdDev < 0.12 && modeRatio >= 0.95) {
-            intervalSamples.clear(); // Require 3 independent 40-click windows (120 robotic clicks) before flagging
+            intervalSamples.clear();
             if (++macroBuffer >= 3.0) {
                 macroBuffer = 3.0;
                 flag(V.write(verbose()).str(String.format("macro std=%.3f mean=%.2ft", stdDev, mean)));

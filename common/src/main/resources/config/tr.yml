@@ -74,11 +74,11 @@ Simulation:
     immediate-setback-threshold: 0.85
     # How large of an advantage over all ticks before we start to setback?
     # -1 to disable
-    max-advantage: 9
+    max-advantage: 12
     # After 50 seconds with default config, the player will go from 4 blocks -> 1 block of advantage
     # This is to stop the player from gathering too many violations and never being able to clear them all
     # Default advantage ceiling (x axis = seconds, y axis = 1/1000 block): https://www.desmos.com/calculator/4lovswdarj
-    max-ceiling: 22
+    max-ceiling: 28
     # Violation level threshold for setback
     # 1 for old behavior
     setback-violation-threshold: 1
@@ -127,19 +127,19 @@ Knockback:
     immediate-setback-threshold: 0.4
     # How large of an advantage over all ticks before we start to setback?
     # -1 to disable
-    max-advantage: 4
+    max-advantage: 6
     # This is to stop the player from gathering too many violations and never being able to clear them all
-    max-ceiling: 12
+    max-ceiling: 15
 
 Explosion:
     threshold: 0.001
     setbackvl: 3
 
 TimerA:
-    setbackvl: 8
+    setbackvl: 15
     # Milliseconds that the player can accumulate for later use when they fall behind
-    # ViaVersion + custom items: a bit more drift than old 80, still below Ultra default 120
-    drift: 100
+    # ViaVersion + custom items: extra drift for 1.21.4 packet batching
+    drift: 150
 
 # This check limits abuse of the TimerA balance by preventing the player's movement falling too far behind realtime
 TimerLimit:

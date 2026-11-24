@@ -33,24 +33,23 @@ public class FarBreak extends Check implements BlockBreakCheck {
             min = Math.min(min, best.distanceSquared(player.x, player.y + d, player.z));
         }
 
-        // With 1.20.5+ the new attribute determines reach; add 0.35 sprint/latency margin
-        double maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 0.35;
+        // With 1.20.5+ the new attribute determines reach; add 0.65 sprint/latency margin
+        double maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 0.65;
         if (player.packetStateData.didLastMovementIncludePosition || player.canSkipTicks()) {
             double threshold = player.getMovementThreshold();
             maxReach += Math.hypot(threshold, threshold);
         }
 
         if (min > maxReach * maxReach) {
-            if (shouldModifyPackets()) {
-                blockBreak.cancel();
-            }
-            if (++flagBuffer >= 2.0) {
-                flagBuffer = 2.0;
+            if (++flagBuffer >= 3.0) {
+                flagBuffer = 3.0;
                 double distance = Math.sqrt(min);
-                flag(V.write(verbose()).f64(distance));
+                if (flag(V.write(verbose()).f64(distance)) && shouldModifyPackets()) {
+                    blockBreak.cancel();
+                }
             }
         } else {
-            flagBuffer = Math.max(0, flagBuffer - 0.25);
+            flagBuffer = Math.max(0, flagBuffer - 0.35);
         }
     }
 }

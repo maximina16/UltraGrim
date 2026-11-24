@@ -107,6 +107,8 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
     @Override
     public void onDisable() {
         GrimAPI.INSTANCE.stop();
+        Bukkit.getServicesManager().unregisterAll(this);
+        Bukkit.getScheduler().cancelTasks(this);
     }
 
     @Override
@@ -192,7 +194,11 @@ public final class GrimACBukkitLoaderPlugin extends JavaPlugin implements Platfo
             return cancelled || bukkitEvent.isCancelled();
         });
 
-        GrimAPIProvider.init(externalAPI);
+        try {
+            GrimAPIProvider.init(externalAPI);
+        } catch (IllegalStateException ignored) {
+            // Re-initialization after plugin-manager reload keeps the existing provider registration
+        }
         Bukkit.getServicesManager().register(GrimAbstractAPI.class, externalAPI, this, ServicePriority.Normal);
     }
 

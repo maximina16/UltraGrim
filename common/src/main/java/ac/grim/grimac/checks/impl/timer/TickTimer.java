@@ -11,7 +11,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPl
 
 import static com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientPlayerFlying.isFlying;
 
-@CheckData(name = "TickTimer", stableKey = "grim.timer.tick", description = "Did not send client tick end packet", setback = 8)
+@CheckData(name = "TickTimer", stableKey = "grim.timer.tick", description = "Did not send client tick end packet", setback = -1)
 public class TickTimer extends Check implements PacketCheck {
     private static final Verbose V = Verbose.of("type=[end|flying], packets={uint}");
 
@@ -34,13 +34,9 @@ public class TickTimer extends Check implements PacketCheck {
                     || player.packetOrderProcessor.isPlacing();
 
             if (!receivedTickEnd) {
-                // Exempt stationary idle ticks (e.g. CraftPixel Launcher headless AFK client / tab-out)
-                // which cannot gain any movement or combat advantage; Timer check still bounds packet rate.
-                if (activeTick && ++buffer >= 6.0) {
-                    buffer = 6.0;
-                    if (flagWithSetback(V.write(verbose()).bool(false).uint(flyingPackets))) {
-                        handleViolation();
-                    }
+                if (activeTick && ++buffer >= 16.0) {
+                    buffer = 12.0;
+                    flag(V.write(verbose()).bool(false).uint(flyingPackets));
                 }
             } else {
                 buffer = Math.max(0, buffer - 0.5);
@@ -49,22 +45,16 @@ public class TickTimer extends Check implements PacketCheck {
             flyingPackets++;
         } else if (event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
             receivedTickEnd = true;
-            if (flyingPackets > 1) {
-                if (++buffer >= 6.0) {
-                    buffer = 6.0;
-                    if (flagWithSetback(V.write(verbose()).bool(true).uint(flyingPackets))) {
-                        handleViolation();
-                    }
+            // Allow 2 batched flying packets per tick end on ViaVersion/1.21.4 lag recovery without flagging
+            if (flyingPackets > 2) {
+                if (++buffer >= 16.0) {
+                    buffer = 12.0;
+                    flag(V.write(verbose()).bool(true).uint(flyingPackets));
                 }
             } else {
                 buffer = Math.max(0, buffer - 0.5);
             }
             flyingPackets = 0;
         }
-    }
-
-    private void handleViolation() {
-        // Although we don't cancel the packet, this should be counted as an invalid packet.
-        player.onPacketCancel();
     }
 }
