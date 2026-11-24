@@ -42,6 +42,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
 
     // The block the player is currently breaking
     Vector3i targetBlockPosition = null;
+    Vector3i lastFinishPosition = null;
     // The maximum amount of damage the player deals to the block
     //
     double maximumBlockDamage = 0;
@@ -64,50 +65,58 @@ public class FastBreak extends Check implements BlockBreakCheck {
                     return;
                 }
             }
-            // If client is older than the server, fetch block client actually sees from via
-            // otherwise just return the server-side block (since if client is >= server version the block is guaranteed to exist in client version)
-            // TODO this lazy loads PacketEvents mappings for older versions for clients on versions older than the servers, increasing memory usage
-            //  * its the only thing we use non-native mappings for behind ViaVersion
-            //  * can we translate back "up" to server version and run check against server version to avoid loading older registries?
             WrappedBlockState block = clientOlderThanServer ? WrappedBlockState.getByGlobalId(player.getClientVersion(), player.getViaTranslatedClientBlockID(blockBreak.block.getGlobalId())) : blockBreak.block;
 
-            startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0); // ???
+            startBreak = System.currentTimeMillis() - (targetBlockPosition == null ? 50 : 0);
             targetBlockPosition = blockBreak.position;
 
             maximumBlockDamage = BlockBreakSpeed.getBlockDamage(player, block);
 
-            double breakDelay = System.currentTimeMillis() - lastFinishBreak;
+            // CraftPixel compatibility:
+            // 1. MaxiMine ores & MaxiBlocks metin stones cancel BlockBreakEvent server-side (so lastFinishPosition remains solid, not AIR).
+            // 2. Instabreak blocks (crops, MaxiFarm crops, Haste/Efficiency instamine >= 0.95) do not incur post-finish destroyDelay.
+            boolean previousActuallyBroke = lastFinishPosition != null
+                    && !lastFinishPosition.equals(blockBreak.position)
+                    && player.compensatedWorld.getBlock(lastFinishPosition).getType().isAir();
+            boolean isNewBlockInstant = maximumBlockDamage >= 0.95 || block.getType().getHardness() == 0.0f;
 
-            if (breakDelay >= 275) { // Reduce buffer if "close enough"
-                blockDelayBalance *= 0.9;
-            } else { // Otherwise, increase buffer
-                blockDelayBalance += 300 - breakDelay;
-            }
+            if (lastFinishBreak > 0 && previousActuallyBroke && !isNewBlockInstant) {
+                double breakDelay = System.currentTimeMillis() - lastFinishBreak;
 
-            if (blockDelayBalance > 1000) { // If more than a second of advantage
-                int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
-                if (flag(V.write(verbose()).bool(true).ulong((long) breakDelay).f64(0).f64(0).sint(type)) && shouldModifyPackets()) {
-                    blockBreak.cancel();
+                if (breakDelay >= 225) { // 5 ticks (250ms) minus 25ms Netty batching tolerance
+                    blockDelayBalance *= 0.85;
+                } else {
+                    blockDelayBalance += 250 - breakDelay;
                 }
+
+                if (blockDelayBalance > 1400) {
+                    int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
+                    if (flag(V.write(verbose()).bool(true).ulong((long) breakDelay).f64(0).f64(0).sint(type)) && shouldModifyPackets()) {
+                        blockBreak.cancel();
+                    }
+                }
+            } else {
+                blockDelayBalance *= 0.85;
             }
 
             clampBalance();
         }
 
         if (blockBreak.action == DiggingAction.FINISHED_DIGGING && targetBlockPosition != null) {
-            double predictedTime = Math.ceil(1 / maximumBlockDamage) * 50;
+            double predictedTime = Math.ceil(1 / Math.max(1.0E-4, maximumBlockDamage)) * 50;
             double realTime = System.currentTimeMillis() - startBreak;
-            double diff = predictedTime - realTime;
+            double tolerance = Math.min(100.0, player.getTransactionPing() * 0.35 + 35.0);
+            double diff = (predictedTime - tolerance) - realTime;
 
             clampBalance();
 
             if (diff < 25) {  // Reduce buffer if "close enough"
-                blockBreakBalance *= 0.9;
+                blockBreakBalance *= 0.85;
             } else { // Otherwise, increase buffer
                 blockBreakBalance += diff;
             }
 
-            if (blockBreakBalance > 1000) { // If more than a second of advantage
+            if (blockBreakBalance > 1400) { // Sustained >1.4s speed advantage
                 int type = VerboseCodecs.block(blockBreak.block.getType(), player.getClientVersion());
                 if (flag(V.write(verbose()).bool(false).ulong(0).f64(diff).f64(blockBreakBalance).sint(type)) && shouldModifyPackets()) {
                     blockBreak.cancel();
@@ -115,6 +124,7 @@ public class FastBreak extends Check implements BlockBreakCheck {
             }
 
             // also set start time because the breaking netcode is fucked on 1.14.4+
+            lastFinishPosition = blockBreak.position;
             lastFinishBreak = startBreak = System.currentTimeMillis();
         }
     }

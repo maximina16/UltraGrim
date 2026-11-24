@@ -23,11 +23,11 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", description = "Tried to break a block without looking at it", experimental = true)
+@CheckData(name = "RotationBreak", stableKey = "grim.breaking.rotation_break", description = "Tried to break a block without looking at it")
 public class RotationBreak extends Check implements BlockBreakCheck {
     private static final Verbose V = Verbose.of("[pre-flying|post-flying], action={digging}");
 
-    private double flagBuffer = 0; // If the player flags once, force them to play legit, or we will cancel the tick before.
+    private double flagBuffer = 0;
     private boolean ignorePost = false;
 
     public RotationBreak(GrimPlayer player) {
@@ -41,9 +41,8 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         if (player.inVehicle()) return; // falses
         if (blockBreak.action == DiggingAction.CANCELLED_DIGGING) return; // falses
 
-        if (flagBuffer > 0 && !didRayTraceHit(blockBreak)) {
+        if (flagBuffer >= 4.0 && !didRayTraceHit(blockBreak)) {
             ignorePost = true;
-            // If the player hit and has flagged this check recently
             if (flag(V.write(verbose()).bool(true)
                     .uint(VerboseCodecs.enumId(blockBreak.action))) && shouldModifyPackets()) {
                 blockBreak.cancel();
@@ -65,16 +64,26 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         }
 
         if (didRayTraceHit(blockBreak)) {
-            flagBuffer = Math.max(0, flagBuffer - 0.1);
+            flagBuffer = Math.max(0, flagBuffer - 0.35);
         } else {
-            flagBuffer = 1;
-            flag(V.write(verbose()).bool(false)
-                    .uint(VerboseCodecs.enumId(blockBreak.action)));
+            flagBuffer = Math.min(8.0, flagBuffer + 1.0);
+            if (flagBuffer >= 4.0) {
+                flag(V.write(verbose()).bool(false)
+                        .uint(VerboseCodecs.enumId(blockBreak.action)));
+            }
         }
+    }
+
+    private static float wrapDegrees(float value) {
+        float v = value % 360.0f;
+        if (v >= 180.0f) v -= 360.0f;
+        if (v < -180.0f) v += 360.0f;
+        return v;
     }
 
     private boolean didRayTraceHit(BlockBreak blockBreak) {
         SimpleCollisionBox box = new SimpleCollisionBox(blockBreak.position);
+        box.expand(0.18); // Generous hitbox padding for crops, Nexo custom blocks, stairs, and fast sweeps
 
         final double[] possibleEyeHeights = player.getPossibleEyeHeights();
 
@@ -87,7 +96,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         }
 
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
-        eyePositions.expand(player.getMovementThreshold());
+        eyePositions.expand(player.getMovementThreshold() + 0.15);
 
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
         if (eyePositions.isIntersected(box)) {
@@ -95,14 +104,19 @@ public class RotationBreak extends Check implements BlockBreakCheck {
         }
         // End checking if the player is in the block
 
-        List<Vector3f> possibleLookDirs = new ArrayList<>(Arrays.asList(
-                new Vector3f(player.lastYaw, player.pitch, 0),
-                new Vector3f(player.yaw, player.pitch, 0)
-        ));
+        List<Vector3f> possibleLookDirs = new ArrayList<>(8);
+        possibleLookDirs.add(new Vector3f(player.lastYaw, player.pitch, 0));
+        possibleLookDirs.add(new Vector3f(player.yaw, player.pitch, 0));
+        possibleLookDirs.add(new Vector3f(player.yaw, player.lastPitch, 0));
 
-        // 1.9+ players could be a tick behind because we don't get skipped ticks
+        // 1.9+ players could be a tick behind or sweeping across crop rows mid-frame
         if (player.getClientVersion().isNewerThanOrEquals(ClientVersion.V_1_9)) {
             possibleLookDirs.add(new Vector3f(player.lastYaw, player.lastPitch, 0));
+            float dYaw = wrapDegrees(player.yaw - player.lastYaw);
+            float dPitch = player.pitch - player.lastPitch;
+            possibleLookDirs.add(new Vector3f(player.lastYaw + dYaw * 0.25f, player.lastPitch + dPitch * 0.25f, 0));
+            possibleLookDirs.add(new Vector3f(player.lastYaw + dYaw * 0.50f, player.lastPitch + dPitch * 0.50f, 0));
+            possibleLookDirs.add(new Vector3f(player.lastYaw + dYaw * 0.75f, player.lastPitch + dPitch * 0.75f, 0));
         }
 
         // 1.7 players do not have any of these issues! They are always on the latest look vector
@@ -110,7 +124,7 @@ public class RotationBreak extends Check implements BlockBreakCheck {
             possibleLookDirs = Collections.singletonList(new Vector3f(player.yaw, player.pitch, 0));
         }
 
-        final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+        final double distance = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 0.6;
         for (double d : possibleEyeHeights) {
             for (Vector3f lookDir : possibleLookDirs) {
                 Vector3d starting = new Vector3d(player.x, player.y + d, player.z);

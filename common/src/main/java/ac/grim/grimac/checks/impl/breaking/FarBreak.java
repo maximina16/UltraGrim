@@ -12,9 +12,10 @@ import ac.grim.grimac.utils.math.VectorUtils;
 import com.github.retrooper.packetevents.protocol.attribute.Attributes;
 import com.github.retrooper.packetevents.protocol.player.DiggingAction;
 
-@CheckData(name = "FarBreak", stableKey = "grim.breaking.far_break", description = "Breaking blocks too far away", experimental = true)
+@CheckData(name = "FarBreak", stableKey = "grim.breaking.far_break", description = "Breaking blocks too far away")
 public class FarBreak extends Check implements BlockBreakCheck {
     private static final Verbose V = Verbose.of("distance={f64:%.2f}");
+    private double flagBuffer = 0;
 
     public FarBreak(GrimPlayer player) {
         super(player);
@@ -32,19 +33,24 @@ public class FarBreak extends Check implements BlockBreakCheck {
             min = Math.min(min, best.distanceSquared(player.x, player.y + d, player.z));
         }
 
-        // getPickRange() determines this?
-        // With 1.20.5+ the new attribute determines creative mode reach using a modifier
-        double maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE);
+        // With 1.20.5+ the new attribute determines reach; add 0.35 sprint/latency margin
+        double maxReach = player.compensatedEntities.self.getAttributeValue(Attributes.BLOCK_INTERACTION_RANGE) + 0.35;
         if (player.packetStateData.didLastMovementIncludePosition || player.canSkipTicks()) {
             double threshold = player.getMovementThreshold();
             maxReach += Math.hypot(threshold, threshold);
         }
 
         if (min > maxReach * maxReach) {
-            double distance = Math.sqrt(min);
-            if (flag(V.write(verbose()).f64(distance)) && shouldModifyPackets()) {
+            if (shouldModifyPackets()) {
                 blockBreak.cancel();
             }
+            if (++flagBuffer >= 2.0) {
+                flagBuffer = 2.0;
+                double distance = Math.sqrt(min);
+                flag(V.write(verbose()).f64(distance));
+            }
+        } else {
+            flagBuffer = Math.max(0, flagBuffer - 0.25);
         }
     }
 }

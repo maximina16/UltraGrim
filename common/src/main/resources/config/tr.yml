@@ -89,19 +89,19 @@ Phase:
     decay: 0.005
 
 AirLiquidPlace:
-    cancelvl: 0
+    cancelvl: -1
 
 FabricatedPlace:
     cancelvl: 1
 
 FarPlace:
-    cancelvl: 1
+    cancelvl: 2
 
 PositionPlace:
-    cancelvl: 1
+    cancelvl: 2
 
 RotationPlace:
-    cancelvl: 1
+    cancelvl: 8
 
 # Prediction-based no slow check
 # Grim accounts for buggy netcode here... hard to false even when spamming right click and offhand button

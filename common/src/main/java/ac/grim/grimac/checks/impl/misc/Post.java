@@ -34,6 +34,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
     private final List<String> flags = new EvictingQueue<>(10);
     private boolean sentFlying = false;
     private int isExemptFromSwingingCheck = Integer.MIN_VALUE;
+    private double flagBuffer = 0;
 
     public Post(GrimPlayer playerData) {
         super(playerData);
@@ -42,6 +43,7 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
     @Override
     public void onPredictionComplete(final PredictionComplete predictionComplete) {
         if (flags.isEmpty()) {
+            flagBuffer = Math.max(0, flagBuffer - 0.25);
             return;
         }
 
@@ -50,7 +52,10 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
         // 1.9+ clients have predictions, which will determine if hidden tick skipping occurred
         if (player.isTickingReliablyFor(3)) {
             for (String flag : flags) {
-                flag(V.write(verbose()).str(flag));
+                if (++flagBuffer >= 3.0) {
+                    flag(V.write(verbose()).str(flag));
+                    flagBuffer = 3.0;
+                }
             }
         }
 
@@ -72,6 +77,15 @@ public class Post extends Check implements PacketCheck, PostPredictionCheck {
 
     @Override
     public void onPacketReceive(final PacketReceiveEvent event) {
+        // On 1.21.2+, CLIENT_TICK_END marks the end of the tick. Setting sentFlying = true on
+        // CLIENT_TICK_END caused the next tick's keybind packets (digging/interact/place/use_item,
+        // sent before sendPosition) to falsely flag whenever the previous tick had no movement packet.
+        if (event.getPacketType() == CLIENT_TICK_END) {
+            post.clear();
+            sentFlying = false;
+            return;
+        }
+
         if (isTickPacket(event.getPacketType())) { // Don't count teleports or duplicates as movements
             post.clear();
             sentFlying = true;

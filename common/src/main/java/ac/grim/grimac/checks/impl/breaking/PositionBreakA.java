@@ -15,6 +15,8 @@ import com.github.retrooper.packetevents.protocol.world.states.type.StateTypes;
 public class PositionBreakA extends Check implements BlockBreakCheck {
     private static final Verbose V = Verbose.of("action={digging}, face={face}");
 
+    private double flagBuffer = 0;
+
     public PositionBreakA(GrimPlayer player) {
         super(player);
     }
@@ -37,12 +39,14 @@ public class PositionBreakA extends Check implements BlockBreakCheck {
         }
 
         SimpleCollisionBox eyePositions = new SimpleCollisionBox(player.x, player.y + minEyeHeight, player.z, player.x, player.y + maxEyeHeight, player.z);
+        eyePositions.expand(0.08); // Grazing angle + custom block/crop hitbox tolerance
         if (!player.packetStateData.didLastMovementIncludePosition || player.canSkipTicks()) {
             eyePositions.expand(player.getMovementThreshold());
         }
 
         // If the player is inside a block, then they can ray trace through the block and hit the other side of the block
         if (eyePositions.isIntersected(combined)) {
+            flagBuffer = Math.max(0, flagBuffer - 0.5);
             return;
         }
 
@@ -59,11 +63,16 @@ public class PositionBreakA extends Check implements BlockBreakCheck {
         };
 
         if (flag) {
-            if (flag(V.write(verbose())
-                    .uint(VerboseCodecs.enumId(blockBreak.action))
-                    .uint(VerboseCodecs.enumId(blockBreak.face))) && shouldModifyPackets()) {
-                blockBreak.cancel();
+            if (++flagBuffer >= 3.0) {
+                flagBuffer = 3.0;
+                if (flag(V.write(verbose())
+                        .uint(VerboseCodecs.enumId(blockBreak.action))
+                        .uint(VerboseCodecs.enumId(blockBreak.face))) && shouldModifyPackets()) {
+                    blockBreak.cancel();
+                }
             }
+        } else {
+            flagBuffer = Math.max(0, flagBuffer - 0.5);
         }
     }
 }

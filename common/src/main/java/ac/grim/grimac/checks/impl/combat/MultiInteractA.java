@@ -14,7 +14,7 @@ import com.github.retrooper.packetevents.wrapper.play.client.WrapperPlayClientSp
 
 import java.util.ArrayList;
 
-@CheckData(name = "MultiInteractA", stableKey = "grim.multiinteract.multiple_targets", description = "Interacted with multiple entities in the same tick", experimental = true)
+@CheckData(name = "MultiInteractA", alternativeName = "Killaura", stableKey = "grim.multiinteract.multiple_targets", description = "Interacted with multiple entities in the same tick")
 public class MultiInteractA extends Check implements PostPredictionCheck {
     private static final Verbose V =
             Verbose.of("lastEntity={sint}, entity={sint}, lastSneaking={bool}, sneaking={bool}");
@@ -23,6 +23,7 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
     private int lastEntity;
     private boolean lastSneaking;
     private boolean hasInteracted = false;
+    private double flagBuffer = 0;
 
     public MultiInteractA(final GrimPlayer player) {
         super(player);
@@ -47,17 +48,24 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
             onInteract(event, packet.getEntityId(), lastSneaking);
         }
 
-        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
+        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType()) || event.getPacketType() == PacketType.Play.Client.CLIENT_TICK_END) {
+            if (!hasInteracted) {
+                flagBuffer = Math.max(0, flagBuffer - 0.25);
+            }
             hasInteracted = false;
         }
     }
 
     private void onInteract(PacketReceiveEvent event, int entity, boolean sneaking) {
-        if (hasInteracted && (entity != lastEntity || sneaking != lastSneaking)) {
+        if (hasInteracted && entity != lastEntity) {
             if (!player.canSkipTicks()) {
-                if (flag(V.write(verbose()).sint(lastEntity).sint(entity).bool(lastSneaking).bool(sneaking)) && shouldModifyPackets()) {
+                if (shouldModifyPackets()) {
                     event.setCancelled(true);
                     player.onPacketCancel();
+                }
+                if (++flagBuffer >= 2.0) {
+                    flagBuffer = 2.0;
+                    flag(V.write(verbose()).sint(lastEntity).sint(entity).bool(lastSneaking).bool(sneaking));
                 }
             } else {
                 flags.add(new FlagData(lastEntity, entity, lastSneaking, sneaking));
@@ -74,8 +82,15 @@ public class MultiInteractA extends Check implements PostPredictionCheck {
         if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
-            for (FlagData data : flags) {
-                flag(V.write(verbose()).sint(data.lastEntity()).sint(data.entity()).bool(data.lastSneaking()).bool(data.sneaking()));
+            if (flags.isEmpty()) {
+                flagBuffer = Math.max(0, flagBuffer - 0.25);
+            } else {
+                for (FlagData data : flags) {
+                    if (++flagBuffer >= 2.0) {
+                        flagBuffer = 2.0;
+                        flag(V.write(verbose()).sint(data.lastEntity()).sint(data.entity()).bool(data.lastSneaking()).bool(data.sneaking()));
+                    }
+                }
             }
         }
 

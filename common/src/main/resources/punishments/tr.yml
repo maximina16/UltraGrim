@@ -22,10 +22,10 @@ Punishments:
       - "Knockback"
       - "Explosion"
     commands:
-      - "5:5 [alert]"
-      - "20:20 [webhook]"
-      - "20:20 [proxy]"
-      - "20:20 [log]"
+      - "15:10 [alert]"
+      - "25:20 [webhook]"
+      - "25:20 [proxy]"
+      - "25:20 [log]"
   Post:
     remove-violations-after: 300
     checks:
@@ -92,6 +92,18 @@ Punishments:
       - "15:10 [webhook]"
       - "15:10 [proxy]"
       - "15:10 [log]"
+  Nuker:
+    remove-violations-after: 300
+    checks:
+      - "Nuker"
+      - "MultiBreak"
+      - "RotationBreak"
+      - "FarBreak"
+    commands:
+      - "6:4 [alert]"
+      - "12:10 [webhook]"
+      - "12:10 [proxy]"
+      - "12:10 [log]"
   Misc:
     remove-violations-after: 300
     checks:
@@ -107,7 +119,7 @@ Punishments:
       - "Chat"
       - "Exploit"
     commands:
-      - "10:5 [alert]"
+      - "12:8 [alert]"
       - "20:10 [webhook]"
       - "20:10 [proxy]"
       - "20:10 [log]"
@@ -118,12 +130,16 @@ Punishments:
       - "Killaura"
       - "Aim"
     commands:
-      - "20:40 [alert]"
-      - "40:40 [log]"
+      - "8:5 [alert]"
+      - "15:15 [webhook]"
+      - "15:15 [proxy]"
+      - "15:15 [log]"
   Autoclicker:
     remove-violations-after: 300
     checks:
       - "Autoclicker"
     commands:
-      - "20:40 [alert]"
-      - "40:40 [log]"
+      - "8:5 [alert]"
+      - "15:15 [webhook]"
+      - "15:15 [proxy]"
+      - "15:15 [log]"

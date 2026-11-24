@@ -211,6 +211,8 @@ public class CheckManager {
                 .put(SprintG.class, new SprintG(player))
                 .put(MultiInteractA.class, new MultiInteractA(player))
                 .put(MultiInteractB.class, new MultiInteractB(player))
+                .put(Killaura.class, new Killaura(player))
+                .put(Autoclicker.class, new Autoclicker(player))
                 .put(ElytraA.class, new ElytraA(player))
                 .put(ElytraB.class, new ElytraB(player))
                 .put(ElytraC.class, new ElytraC(player))
@@ -265,6 +267,7 @@ public class CheckManager {
                 .put(InvalidBreak.class, new InvalidBreak(player))
                 .put(PositionBreakA.class, new PositionBreakA(player))
                 .put(PositionBreakB.class, new PositionBreakB(player))
+                .put(Nuker.class, new Nuker(player))
                 .put(MultiActionsB.class, new MultiActionsB(player))
                 .build();
 

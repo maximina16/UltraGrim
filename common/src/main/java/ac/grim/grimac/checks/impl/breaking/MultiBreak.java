@@ -16,7 +16,7 @@ import com.github.retrooper.packetevents.util.Vector3i;
 import java.util.ArrayList;
 import java.util.List;
 
-@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", description = "Tried to break multiple different blocks in the same movement tick", experimental = true)
+@CheckData(name = "MultiBreak", stableKey = "grim.breaking.multi_break", description = "Tried to break multiple different blocks in the same movement tick")
 public class MultiBreak extends Check implements BlockBreakCheck {
     private static final Verbose V =
             Verbose.of("face={face}, lastFace={face}, pos={mcpos}, lastPos={mcpos}");
@@ -25,6 +25,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
     private boolean hasBroken;
     private BlockFace lastFace;
     private Vector3i lastPos;
+    private double flagBuffer = 0;
 
     public MultiBreak(GrimPlayer player) {
         super(player);
@@ -36,19 +37,24 @@ public class MultiBreak extends Check implements BlockBreakCheck {
             return;
         }
 
-        if (hasBroken && (blockBreak.face != lastFace || !blockBreak.position.equals(lastPos))) {
+        if (hasBroken && !blockBreak.position.equals(lastPos)) {
             final int face = VerboseCodecs.enumId(blockBreak.face);
             final int previousFace = VerboseCodecs.enumId(lastFace);
             if (!player.canSkipTicks()) {
-                var buf = V.write(verbose()).uint(face).uint(previousFace)
-                        .mcPos(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z)
-                        .mcPos(lastPos.x, lastPos.y, lastPos.z);
-                if (flag(buf) && shouldModifyPackets()) {
-                    blockBreak.cancel();
+                flagBuffer = Math.min(6.0, flagBuffer + 1.0);
+                if (flagBuffer >= 3.0) {
+                    var buf = V.write(verbose()).uint(face).uint(previousFace)
+                            .mcPos(blockBreak.position.x, blockBreak.position.y, blockBreak.position.z)
+                            .mcPos(lastPos.x, lastPos.y, lastPos.z);
+                    if (flag(buf) && shouldModifyPackets()) {
+                        blockBreak.cancel();
+                    }
                 }
             } else {
                 flags.add(new FlagData(face, previousFace, blockBreak.position, lastPos));
             }
+        } else if (!hasBroken) {
+            flagBuffer = Math.max(0, flagBuffer - 0.25);
         }
 
         lastFace = blockBreak.face;
@@ -58,7 +64,7 @@ public class MultiBreak extends Check implements BlockBreakCheck {
 
     @Override
     public void onPacketReceive(PacketReceiveEvent event) {
-        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType())) {
+        if (!player.cameraEntity.isSelf() || isTickPacket(event.getPacketType()) || event.getPacketType() == com.github.retrooper.packetevents.protocol.packettype.PacketType.Play.Client.CLIENT_TICK_END) {
             hasBroken = false;
         }
     }
@@ -68,10 +74,17 @@ public class MultiBreak extends Check implements BlockBreakCheck {
         if (!player.canSkipTicks()) return;
 
         if (player.isTickingReliablyFor(3)) {
-            for (FlagData data : flags) {
-                flag(V.write(verbose()).uint(data.face()).uint(data.previousFace())
-                        .mcPos(data.pos().x, data.pos().y, data.pos().z)
-                        .mcPos(data.previousPos().x, data.previousPos().y, data.previousPos().z));
+            if (flags.isEmpty()) {
+                flagBuffer = Math.max(0, flagBuffer - 0.25);
+            } else {
+                for (FlagData data : flags) {
+                    flagBuffer = Math.min(6.0, flagBuffer + 1.0);
+                    if (flagBuffer >= 3.0) {
+                        flag(V.write(verbose()).uint(data.face()).uint(data.previousFace())
+                                .mcPos(data.pos().x, data.pos().y, data.pos().z)
+                                .mcPos(data.previousPos().x, data.previousPos().y, data.previousPos().z));
+                    }
+                }
             }
         }
 
